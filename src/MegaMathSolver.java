@@ -7,7 +7,7 @@ import net.hellession.megamathsolver.util.State;
 
 /**
  * 
- * @author PC
+ * @author Hellession
  * Main
  */
 public class MegaMathSolver {
@@ -23,8 +23,8 @@ public class MegaMathSolver {
 	
 	
 	public static Scanner Keyboard = new Scanner(System.in);
-	public static final String VERSION = "0.1";
-	public static final State STATE = State.ERR;
+	public static final String VERSION = "0.2.1";
+	public static final State STATE = State.DEVELOPMENT;
 	
 	/**
 	 * This below is called a "method". "Methods" are also called "functions" in other programming languages. They do something, then give you a

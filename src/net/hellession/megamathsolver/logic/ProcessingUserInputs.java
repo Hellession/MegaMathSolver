@@ -1,5 +1,8 @@
 package net.hellession.megamathsolver.logic;
 
+import net.hellession.megamathsolver.exception.SyntaxException;
+import net.hellession.megamathsolver.math.Expression;
+
 public class ProcessingUserInputs {
 
 	/**
@@ -13,11 +16,19 @@ public class ProcessingUserInputs {
 		if (Mode == 1) {
 			if (Input == "1"){
 				toReturn.mode = 2;
-				toReturn.userOutput = "Please input your expression.";
+				toReturn.userOutput = "Please input your expression. Note that fractions have a special format.";
 			}
 		}
 		if (Mode == 2) {
-			
+			try{
+			Expression tww;
+			tww = Processer.parseMathematicallyExp(Input);
+			toReturn.userOutput = "Your expression " + Input + " has been solved with the result " + Processer.solveExpression(tww);
+			toReturn.mode = 1;
+			}catch(SyntaxException e){
+				toReturn.userOutput = "An error has been encountered, while processing your input: ";
+				toReturn.problem = e;
+			}
 		}
 		return toReturn;
 	}

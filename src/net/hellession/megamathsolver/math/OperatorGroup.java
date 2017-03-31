@@ -20,6 +20,11 @@ public class OperatorGroup {
 	public Object[] Group;
 	
 	/**
+	 * An OperatorGroup object, which superseeds this current object.
+	 */
+	public OperatorGroup lower;
+	
+	/**
 	 * A method that can be used to retrieve Last Monomials.
 	 * @return last Monomial in the OperatorGroup.
 	 */
@@ -93,12 +98,23 @@ public class OperatorGroup {
 		}
 		return success;
 	}
-}
-
-class Operator{
-	public Operators op;
 	
-	public Operator(Operators opa){
-		this.op = opa;
+	public boolean addOperatorGroup(OperatorGroup what){
+		boolean success = false;
+		if (Group.length == 0){
+			Group[Group.length+1] = what;
+			success = true;
+		}else{
+			Group[Group.length+1] = what;
+			success = true;
+		}
+		return success;
+	}
+	
+	public OperatorGroup(OperatorGroup prev){
+		this.lower = prev;
+	}
+	
+	public OperatorGroup(){ // Using this constructor is not recommended
 	}
 }

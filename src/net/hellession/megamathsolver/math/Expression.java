@@ -6,4 +6,7 @@ package net.hellession.megamathsolver.math;
  * 
  */
 public class Expression extends OperatorGroup{
+	public Expression(){
+		
+	}
 }

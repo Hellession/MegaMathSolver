@@ -15,9 +15,11 @@ public class UserMode {
 	public int mode;
 	
 	public String userOutput;
+	public Exception problem;
 	
 	public UserMode(){
 		this.mode = 1;
 		this.userOutput = "Select solver mode: 1 for expression, 2 for equation, 3 for rational expression, 4 for rational equation, 5 for simplify.";
+		this.problem = null;
 	}
 }

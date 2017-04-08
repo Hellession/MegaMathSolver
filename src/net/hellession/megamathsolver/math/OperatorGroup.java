@@ -1,6 +1,7 @@
 package net.hellession.megamathsolver.math;
 
-import java.util.Arrays;
+
+import java.util.Vector;
 
 /**
  * Class for defining a group of operators, this would be used if the operators are in brackets, then put in an order.
@@ -17,7 +18,7 @@ public class OperatorGroup {
 	 * An OperatorGroup itself can be contained in this list as well, replacing a Monomial.
 	 * At the end of the list there should be a Monomial object.
 	 */
-	public Object[] Group;
+	public Vector<Object> Group = new Vector<Object>();
 	
 	/**
 	 * An OperatorGroup object, which superseeds this current object.
@@ -25,18 +26,26 @@ public class OperatorGroup {
 	public OperatorGroup lower;
 	
 	/**
+	 * 0 means it is the Expression itself
+	 * and the higher it is, the more deep this OperatorGroup is inside of the Expression.
+	 */
+	public int level;
+	
+	/**
 	 * A method that can be used to retrieve Last Monomials.
 	 * @return last Monomial in the OperatorGroup.
 	 */
 	public NumberMonomial getLastMonomial(){
 		NumberMonomial toReturn = null;
-		for(int i = this.Group.length;i>0;--i){
-			if (Group[i] instanceof NumberMonomial){
-				toReturn = (NumberMonomial) Group[i];
+		boolean FoundLast = false;
+		for(int i = this.Group.size();FoundLast==false;--i){
+			if (Group.elementAt(i-1) instanceof NumberMonomial){
+				FoundLast=true;
+				toReturn = (NumberMonomial) Group.elementAt(i-1);
 			}
 		}
-		if (toReturn == null){
-			throw new NullPointerException("The array " + Arrays.toString(Group) + " did not contain any members of class NumberMonomial");
+		if (FoundLast==false){
+			throw new NullPointerException("The array " + Group.toString() + " did not contain any members of class NumberMonomial");
 		}
 		return toReturn;
 	}
@@ -47,13 +56,15 @@ public class OperatorGroup {
 	 */
 	public Operator getLastOperator(){
 		Operator toReturn = null;
-		for(int i = this.Group.length;i>0;--i){
-			if (Group[i] instanceof Operator){
-				toReturn = (Operator) Group[i];
+		boolean FoundLast = false;
+		for(int i = this.Group.size();FoundLast==false;--i){
+			if (Group.elementAt(i-1) instanceof Operator){
+				FoundLast=true;
+				toReturn = (Operator) Group.elementAt(i-1);
 			}
 		}
-		if (toReturn == null){
-			throw new NullPointerException("The array " + Arrays.toString(Group) + " did not contain any members of class Operator");
+		if (FoundLast==false){
+			throw new NullPointerException("The array " + Group.toString() + " did not contain any members of class Operator");
 		}
 		return toReturn;
 	}
@@ -65,12 +76,12 @@ public class OperatorGroup {
 	 */
 	public boolean addMonomial(NumberMonomial what){
 		boolean success = false;
-		if (Group.length == 0){
-			Group[Group.length+1] = what;
+		if (Group.size() == 0){
+			Group.addElement(what);
 			success = true;
 		}else{
-			if (Group[Group.length] instanceof Operator){
-				Group[Group.length+1] = what;
+			if (Group.lastElement() instanceof Operator){
+				Group.addElement(what);
 				success = true;
 			}else{
 				success = false;
@@ -86,11 +97,11 @@ public class OperatorGroup {
 	 */
 	public boolean addOperator(Operator what){
 		boolean success = false;
-		if (Group.length == 0){
+		if (Group.size() == 0){
 			success = false;
 		}else{
-			if (Group[Group.length] instanceof NumberMonomial || Group[Group.length] instanceof OperatorGroup){
-				Group[Group.length+1] = what;
+			if (Group.lastElement() instanceof NumberMonomial || Group.lastElement() instanceof OperatorGroup){
+				Group.addElement(what);
 				success = true;
 			}else{
 				success = false;
@@ -101,11 +112,11 @@ public class OperatorGroup {
 	
 	public boolean addOperatorGroup(OperatorGroup what){
 		boolean success = false;
-		if (Group.length == 0){
-			Group[Group.length+1] = what;
+		if (Group.size() == 0){
+			Group.addElement(what);
 			success = true;
 		}else{
-			Group[Group.length+1] = what;
+			Group.addElement(what);
 			success = true;
 		}
 		return success;
@@ -113,6 +124,11 @@ public class OperatorGroup {
 	
 	public OperatorGroup(OperatorGroup prev){
 		this.lower = prev;
+	}
+	
+	public OperatorGroup(OperatorGroup prev, int lvl){
+		this.lower = prev;
+		this.level = lvl;
 	}
 	
 	public OperatorGroup(){ // Using this constructor is not recommended

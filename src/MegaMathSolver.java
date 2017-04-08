@@ -1,5 +1,6 @@
 import java.util.Scanner;
 
+import net.hellession.megamathsolver.exception.SyntaxException;
 import net.hellession.megamathsolver.logic.ProcessingUserInputs;
 import net.hellession.megamathsolver.logic.UserMode;
 import net.hellession.megamathsolver.util.State;
@@ -12,30 +13,29 @@ import net.hellession.megamathsolver.util.State;
  */
 public class MegaMathSolver {
 
-	/**
-	 * These below are called "fields". They can also be called "properties of the class". These are variables I set to work with.
-	 * Remember that there are words in the purple color. Those are keywords and they hold special meaning.
-	 */
+	
 	public static String equation;
 	public static boolean endRequested;
 	public static String userInput;
 	private static UserMode ourMode = new UserMode();
 	
 	
+	
+	
 	public static Scanner Keyboard = new Scanner(System.in);
-	public static final String VERSION = "0.2.1";
+	public static final String VERSION = "0.3.0.6";
 	public static final State STATE = State.DEVELOPMENT;
 	
-	/**
-	 * This below is called a "method". "Methods" are also called "functions" in other programming languages. They do something, then give you a
-	 * result. Let's say you need to add 2 numbers. You can make a method that will add 2 numbers and then use "return" keyword to return the
-	 * result. Methods are a really important concept in programming.
-	 */
-	public static void main(String[] args) {
-		System.out.println("Hello. Welcome to the Mathematical solver. Version: v" + VERSION + ". Initializing...");
+	
+	public static void main(String[] args) throws SyntaxException {
+		System.out.println("Hello. Welcome to the Mathematical solver by Hellession. Version: v" + VERSION + ". Initializing...");
+		try{
 		preinitcheck();
 		init();
 		loop();
+		}catch(NullPointerException e){
+			e.printStackTrace();
+		}
 	}
 	
 	public static void preinitcheck(){
@@ -57,8 +57,9 @@ public class MegaMathSolver {
 	
 	/**
 	 * A method, that holds the main "brain" of the program. It will loop constantly until the "endRequested" variable will be "true".
+	 * @throws SyntaxException 
 	 */
-	public static void loop(){
+	public static void loop() throws SyntaxException{
 		do{
 			
 			System.out.println(ourMode.userOutput);

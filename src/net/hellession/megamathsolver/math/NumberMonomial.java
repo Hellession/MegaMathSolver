@@ -1,5 +1,7 @@
 package net.hellession.megamathsolver.math;
 
+import java.util.Vector;
+
 /**
  * Class for defining any monomials - numbers with multipliers. They can have a list of multipliers.
  * Multipliers can range from being just an unknown letter up to square roots.
@@ -18,7 +20,7 @@ public class NumberMonomial {
 	 * In examples 6x, 9b, 15d and 2x^2, the Multipliers will be x, b, d and x^2.
 	 * 
 	 */
-	public Multiplier[] Multipliers;
+	public Vector<Multiplier> Multipliers = new Vector<Multiplier>();
 	/**
 	 * The boolean will be true, if the monomial coefficient is negative: -6d, -43.2a.
 	 */
@@ -56,18 +58,22 @@ public class NumberMonomial {
 		}
 	}
 	
+	public NumberMonomial(double digit){
+		this.Number = digit;
+	}
+	
 	
 	public Multiplier getLastMulti(){
 		Multiplier toReturn = null;
-		if (this.Multipliers.length == 0){
+		if (this.Multipliers.lastElement() == null){
 			throw new NullPointerException("Failed to locate a Multiplier in a single type list");
 		}else{
-			toReturn = this.Multipliers[this.Multipliers.length];
+			toReturn = (Multiplier) this.Multipliers.lastElement();
 		}
 		return toReturn;
 	}
 	
 	public void addMultiplier(Multiplier what){
-		Multipliers[Multipliers.length+1] = what;
+		Multipliers.addElement(what);
 	}
 }

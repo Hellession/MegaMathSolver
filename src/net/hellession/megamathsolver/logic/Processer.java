@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import net.hellession.megamathsolver.exception.SyntaxException;
 import net.hellession.megamathsolver.math.*;
+import net.hellession.megamathsolver.util.Util;
 
 public class Processer {
 	/**
@@ -42,15 +43,15 @@ public class Processer {
 				processMode = 1;
 				ourCurrentThing.addMonomial(new NumberMonomial(what.charAt(i)));
 				if(i+1 < what.length()){
-				while(Character.isDigit(what.charAt(i+1)) == true){
-					ourCurrentThing.getLastMonomial().Number = connectNumbers(ourCurrentThing.getLastMonomial().Number,what.charAt(i));
+				while(i+1 < what.length()&&Character.isDigit(what.charAt(i+1)) == true){
+					ourCurrentThing.getLastMonomial().Number = connectNumbers(ourCurrentThing.getLastMonomial().Number,Character.digit(what.charAt(i+1),10));
 					++i;
 					Logger.logDebugInfo("More numbers in a row found, final number = " + ourCurrentThing.getLastMonomial().Number);
 				}}
 			}
 			if (Character.isAlphabetic(what.charAt(i)) && processMode == 0){ // A NumberMonomial with coefficient 1 and a Multiplier letter
 				Logger.logDebugInfo("Stumbled accross a Monomial with a letter");
-				if (ourCurrentThing.getLastMonomial().Multipliers.get(0).MultiChar == 's'){
+				if (what.charAt(i) == 's'){
 					++i;
 					if(what.charAt(i)=='q'){
 						++i;
@@ -86,14 +87,20 @@ public class Processer {
 					ourCurrentThing.addMonomial(new NumberMonomial(what.charAt(i)));
 				}
 			}
+			if (!Character.isDigit(what.charAt(i)) && processMode == 2){
+				Logger.logDebugInfo("Found more multipliers for a Monomial, but again, it may not be a Multiplier");
+				if (Character.isAlphabetic(what.charAt(i))){
+					ourCurrentThing.getLastMonomial().addMultiplier(new Multiplier(ourCurrentThing.getLastMonomial(), what.charAt(i)));
+				}
+			}
 			if (!Character.isDigit(what.charAt(i)) && processMode == 1){
 				Logger.logDebugInfo("Found multipliers for a Monomial with numbers, although it may be an Operator or something else than a Multiplier");
-				if (Character.isDigit(what.charAt(i))){
+				if (Character.isDigit(what.charAt(i))){ // retarded code block - please delete later
 					ourCurrentThing.getLastMonomial().Number = connectNumbers(ourCurrentThing.getLastMonomial().Number,what.charAt(i));
 				}
 				if (Character.isAlphabetic(what.charAt(i))){
 					processMode = 2;
-					ourCurrentThing.getLastMonomial().addMultiplier(new Multiplier(ourCurrentThing.getLastMonomial()));
+					ourCurrentThing.getLastMonomial().addMultiplier(new Multiplier(ourCurrentThing.getLastMonomial(), what.charAt(i)));
 				}
 				if (what.charAt(i) == '^'){
 					processMode = 3;
@@ -156,9 +163,11 @@ public class Processer {
 			if (what.charAt(i) == '('){
 				Logger.logDebugInfo("OperatorGroup found, making a new OperatorGroup object");
 				if (ourCurrentThing.Group.lastElement() instanceof NumberMonomial || ourCurrentThing.Group.lastElement() instanceof OperatorGroup){
+					Logger.logDebugInfo("There was a Multiplication operator missing, adding it");
 					ourCurrentThing.Group.add(new Operator(Operators.MULTIPLICATION));
 				}
 				++Tree;
+				processMode = 0;
 				ourLowerLevel = ourCurrentThing;
 				ourCurrentThing = new OperatorGroup(ourLowerLevel, Tree);
 				ourLowerLevel.addOperatorGroup(ourCurrentThing);
@@ -203,7 +212,8 @@ public class Processer {
 	
 	
 	public static double connectNumbers(double initValue, int toConnect){
-		return initValue * 10 + toConnect;
+		Logger.logDebugInfo("Connecting numbers: " + initValue + " and " + toConnect + " =" + new Double(initValue * 10 + (double) toConnect));
+		return initValue * 10 + (double) toConnect;
 	}
 	
 	/**
@@ -306,7 +316,9 @@ public class Processer {
 					Logger.logDebugInfo("Multiplying");
 					NumberMonomial rightResult = (NumberMonomial) gr.Group.elementAt(i+1);
 					NumberMonomial leftSide = (NumberMonomial) gr.Group.elementAt(i-1);
+					Logger.logDebugInfo(leftSide.Number + "*" + rightResult.Number + "=");
 					rightResult.Number = leftSide.Number * rightResult.Number;
+					Logger.logDebugInfo(Double.toString(rightResult.Number));
 					
 					if (leftSide.Multipliers.size() > 0){
 						for(int p=0;p<leftSide.Multipliers.size();++p){
@@ -325,17 +337,26 @@ public class Processer {
 					Logger.logDebugInfo("Dividing");
 					NumberMonomial rightResult = (NumberMonomial) gr.Group.elementAt(i+1);
 					NumberMonomial leftSide = (NumberMonomial) gr.Group.elementAt(i-1);
+					Logger.logDebugInfo(leftSide.toString() + "/" + rightResult.toString() + "=");
 					rightResult.Number = leftSide.Number / rightResult.Number;
+					Logger.logDebugInfo(rightResult.toString());
 					
 					if (rightResult.Multipliers.size() > 0){
 						for(int p=0;p<rightResult.Multipliers.size();++p){ // dont use 'contains()' method of Vector, because it checks for EXACT object, we don't have that
+							Logger.logDebugInfo("Looking for Multiplier " + rightResult.Multipliers.elementAt(p).MultiChar + " in both sides.");
 							if (findSameMultiplier(rightResult.Multipliers.elementAt(p).MultiChar, leftSide) > -1){
-								rightResult.Multipliers.remove(p);
+								int deletethis = findSameMultiplier(rightResult.Multipliers.elementAt(p).MultiChar, leftSide);
+								rightResult.Multipliers.remove(p); // Unknown problem - Exceptions are not thrown, even if a Multiplier on the right hand side of the expression deosn't match anything on the left hand side
+								leftSide.Multipliers.remove(deletethis);
 								--p;
 							}else{
-								throw new SyntaxException("Invalid Syntax - The operation " + leftSide.Number + leftSide.Multipliers.toString() + " + " + rightResult.Number + rightResult.Multipliers.toString() + " rationalizes the expression, making it illegal");
+								Logger.logErrorInfo("Invalid Syntax - The operation " + leftSide.Number + Util.turnMultiplierstoString(leftSide) + " + " + rightResult.Number + Util.turnMultiplierstoString(rightResult) + " rationalizes the expression, therefore making it illegal");
+								throw new SyntaxException("Invalid Syntax - The operation " + leftSide.Number + Util.turnMultiplierstoString(leftSide) + " + " + rightResult.Number + Util.turnMultiplierstoString(rightResult) + " rationalizes the expression, making it illegal");
 							}
 						}
+					}
+					for (int p=0;p<leftSide.Multipliers.size();++p){
+						rightResult.addMultiplier(leftSide.Multipliers.elementAt(p));
 					}
 					
 					gr.Group.removeElementAt(i);
@@ -396,6 +417,7 @@ public class Processer {
 				// yay
 			}else{
 				success = false;
+				Logger.logDebugInfo("Checking Equal Multipliers failed - they are not equal: " + listOne.toString() + " and " + listTwo.Multipliers.toString());
 			}
 		}
 		return success;

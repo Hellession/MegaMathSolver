@@ -38,7 +38,7 @@ public class Result {
 	public String toString(){
 		String toReturn = null;
 		if (this.type==1){
-			toReturn = Integer.toString((int) this.resultMonomial.Number) + Util.turnMultiplierstoString(this.resultMonomial);
+			toReturn = Double.toString(this.resultMonomial.Number) + Util.turnMultiplierstoString(this.resultMonomial);
 		}
 		return toReturn;
 	}

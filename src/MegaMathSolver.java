@@ -23,7 +23,7 @@ public class MegaMathSolver {
 	
 	
 	public static Scanner Keyboard = new Scanner(System.in);
-	public static final String VERSION = "0.3.0.6";
+	public static final String VERSION = "0.3.1";
 	public static final State STATE = State.DEVELOPMENT;
 	
 	

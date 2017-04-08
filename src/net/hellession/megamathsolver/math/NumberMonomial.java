@@ -2,6 +2,8 @@ package net.hellession.megamathsolver.math;
 
 import java.util.Vector;
 
+import net.hellession.megamathsolver.util.Util;
+
 /**
  * Class for defining any monomials - numbers with multipliers. They can have a list of multipliers.
  * Multipliers can range from being just an unknown letter up to square roots.
@@ -75,5 +77,10 @@ public class NumberMonomial {
 	
 	public void addMultiplier(Multiplier what){
 		Multipliers.addElement(what);
+	}
+	
+	@Override
+	public String toString(){
+		return new String(this.Number + Util.turnMultiplierstoString(this));
 	}
 }

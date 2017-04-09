@@ -26,7 +26,7 @@ public class Processer {
 	 */
 	public static Expression parseMathematicallyExp(String what) throws SyntaxException{
 		Logger.logDebugInfo("Parsing an expression...");
-		int processMode = 0; // 0 - none, 1 - reading a Monomial(numbers)! 2 - reading a Monomial's multipliers! 3 - reading a Number's exponator, 4 - reading an exponator for a Multiplier,
+		int processMode = 0; // 0 - none, 1 - reading a Monomial(numbers)! 2 - reading a Monomial's multipliers! 3 - reading a Number's exponator, 4 - reading an exponator for a Multiplier, 5 - reading exponator for an OperatorGroup(exponator is an Operator)
 		Expression ourThing = new Expression();
 		/**
 		 * The Tree var is responsible for showing how many "OperatorGroup" upwards have been made.
@@ -38,6 +38,12 @@ public class Processer {
 		OperatorGroup ourLowerLevel = null;
 		what.toLowerCase();
 		for(int i=0; i < what.length(); ++i){
+			if (Character.isDigit(what.charAt(i)) && processMode == 3){
+				ourCurrentThing.getLastMonomial().pow = (int) connectNumbers(ourCurrentThing.getLastMonomial().pow, Character.digit(what.charAt(i+1),10));
+			}
+			if (Character.isDigit(what.charAt(i)) && processMode == 4){
+				ourCurrentThing.getLastMonomial().getLastMulti().pow = (int) connectNumbers(ourCurrentThing.getLastMonomial().pow, Character.digit(what.charAt(i+1),10));
+			}
 			if (Character.isDigit(what.charAt(i)) && processMode == 0) { // A NumberMonomial with any int coefficient
 				Logger.logDebugInfo("Stumbled accross a number");
 				processMode = 1;
@@ -103,8 +109,9 @@ public class Processer {
 					ourCurrentThing.getLastMonomial().addMultiplier(new Multiplier(ourCurrentThing.getLastMonomial(), what.charAt(i)));
 				}
 				if (what.charAt(i) == '^'){
+					Logger.logDebugInfo("A number was required to be raised to the power of something");
 					processMode = 3;
-					++i; // UNFINISHED - THERE MIGHT BE MORE NUMBERS AFTER THE EXPONENTATION MARK
+					++i; // Successful! :D
 					if (!Character.isDigit(what.charAt(i)) && what.charAt(i) != '-'){
 						throw new IllegalArgumentException("Invalid power amount at index " + i + " in expression String " + what);
 					}else{
@@ -113,7 +120,7 @@ public class Processer {
 							int ok = - (int) what.charAt(i);
 							ourCurrentThing.getLastMonomial().pow = ok;
 						}else{
-							ourCurrentThing.getLastMonomial().pow = (int) (what.charAt(i));
+							ourCurrentThing.getLastMonomial().pow = Character.digit((what.charAt(i)),10);
 						}
 					}
 					
@@ -122,7 +129,7 @@ public class Processer {
 			if (what.charAt(i) == '^' && processMode == 2){
 				Logger.logDebugInfo("Exponentation operator found");
 				processMode = 4;
-				++i; //UNFINISHED, 
+				++i; // Finished now :D 
 				if (!Character.isDigit(what.charAt(i)) && what.charAt(i) != '-'){
 					throw new IllegalArgumentException("Invalid power amount - you need to have a power of a number; not a monomial!");
 				}else{
@@ -131,7 +138,7 @@ public class Processer {
 						int ok = - (int) what.charAt(i);
 						ourCurrentThing.getLastMonomial().getLastMulti().pow = ok;
 					}else{
-						ourCurrentThing.getLastMonomial().getLastMulti().pow = (int) (what.charAt(i));
+						ourCurrentThing.getLastMonomial().getLastMulti().pow = Character.digit((what.charAt(i)),10);
 					}
 				}
 			}
@@ -159,6 +166,14 @@ public class Processer {
 				Logger.logDebugInfo("Modulus found");
 				processMode = 0; //reset
 				ourCurrentThing.addOperator(new Operator(Operators.MODULUS));
+			}
+			if(what.charAt(i) == '^' && processMode == 0){
+				Logger.logDebugInfo("The input implies that the expression will contain OperatorGroups getting exponated, although if there is no OperatorGroup behind the exponentation Operator, an Exception will be generated");
+				if (ourCurrentThing.Group.lastElement() instanceof OperatorGroup){
+					ourCurrentThing.addOperator(new Operator(Operators.EXPONENTIATION));
+				}else{
+					throw new SyntaxException("Invalid syntax - Confusion in raising to the power of " + what.charAt(i+1) + " when what is being raised is an object of " + ourCurrentThing.Group.lastElement().getClass().toGenericString());
+				}
 			}
 			if (what.charAt(i) == '('){
 				Logger.logDebugInfo("OperatorGroup found, making a new OperatorGroup object");
@@ -212,8 +227,14 @@ public class Processer {
 	
 	
 	public static double connectNumbers(double initValue, int toConnect){
-		Logger.logDebugInfo("Connecting numbers: " + initValue + " and " + toConnect + " =" + new Double(initValue * 10 + (double) toConnect));
-		return initValue * 10 + (double) toConnect;
+		double result = 0.0;
+		if (initValue>=0){
+			result = initValue * 10 + (double) toConnect;
+		}else{
+			result = initValue * 10 - (double) toConnect;
+		}
+		Logger.logDebugInfo("Connecting numbers: " + initValue + " and " + toConnect + " =" + result);
+		return result;
 	}
 	
 	/**
@@ -226,6 +247,7 @@ public class Processer {
 		Logger.logDebugInfo("Solving expression");
 		Result result = null;
 		Vector<OperatorGroup> Opgrouplist = repeatableOpgrSearch(ep); //list that will be taken out
+		raiseToThePowerOf(Opgrouplist);
 		while(Opgrouplist.size()>1){
 			Logger.logDebugInfo("Calculating highest OperatorGroup");
 			OperatorGroup FH = findFirstHighest(Opgrouplist,ep);
@@ -421,5 +443,21 @@ public class Processer {
 			}
 		}
 		return success;
+	}
+	
+	public static void raiseToThePowerOf(Vector<OperatorGroup> lookFor){
+		Logger.logDebugInfo("Raising NumberMonomials numbers to the power of the pow they have");
+		for (int ty=0;ty<lookFor.size();++ty){
+			for (int tyy=0;tyy<lookFor.elementAt(ty).Group.size();++tyy){
+				if (lookFor.elementAt(ty).Group.elementAt(tyy) instanceof NumberMonomial){
+					NumberMonomial workingWith = (NumberMonomial) lookFor.elementAt(ty).Group.elementAt(tyy);
+					if (workingWith.pow != 1){
+						Logger.logDebugInfo("Raising " + workingWith.Number + " to the power of " + workingWith.pow);
+						workingWith.Number = Math.pow(workingWith.Number, workingWith.pow);
+						workingWith.pow = 1;
+					}
+				}
+			}
+		}
 	}
 }

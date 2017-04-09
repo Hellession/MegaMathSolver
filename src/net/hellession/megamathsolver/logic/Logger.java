@@ -13,4 +13,8 @@ public class Logger {
 			System.err.println("[ERROR]" + msg);
 		}
 	}
+	
+	public static void logExceptionInfo(String msg, String ExceptionType){
+		System.err.println("[" + ExceptionType + " Exception]" + msg);
+	}
 }

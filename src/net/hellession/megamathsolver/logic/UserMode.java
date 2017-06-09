@@ -16,10 +16,11 @@ public class UserMode {
 	
 	public String userOutput;
 	public Exception problem;
+	public boolean debug = false;
 	
 	public UserMode(){
 		this.mode = 1;
-		this.userOutput = "Select solver mode: 1 for expression, 2 for equation, 3 for rational expression, 4 for rational equation, 5 for simplify.";
+		this.userOutput = "Select solver mode: 1 for expression, 2 for equation, 3 for rational expression, 4 for rational equation, 5 for simplify. Type DEBUG to toggle DEBUG mode.";
 		this.problem = null;
 	}
 }
